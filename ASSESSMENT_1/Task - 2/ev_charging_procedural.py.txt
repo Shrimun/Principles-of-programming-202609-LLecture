@@ -1,0 +1,131 @@
+import math
+
+process_another_vehicle = "YES"
+
+while process_another_vehicle == "YES":
+
+    # Get user input
+
+    user_id = input("Enter User ID: ")
+    vehicle_number = input("Enter Vehicle Number: ")
+    member_type = input("Enter Member Type (STUDENT/STAFF/NONE): ").upper()
+    charger_type = input("Enter Charger Type (AC/DC): ").upper()
+    hours_charged = float(input("Enter Hours Charged: "))
+
+    is_first_time_user = input(
+        "Is this a first-time user? (YES/NO): "
+    ).upper()
+    has_green_eco_pass = input(
+        "Has Green Eco-Pass? (YES/NO): "
+    ).upper()
+    is_peak_hour = input(
+        "Is it peak hour? (YES/NO): "
+    ).upper()
+    is_idle_parking = input(
+        "Is there idle parking? (YES/NO): "
+    ).upper()
+    lost_rfid_card = input(
+        "Lost RFID card? (YES/NO): "
+    ).upper()
+
+    # Initialise values
+
+    gross_fee = 0
+    member_discount = 0
+    eco_pass_discount = 0
+    surcharge_amount = 0
+    hourly_rate = 0
+
+    # Charging time is billed by the hour or part thereof
+
+    billable_hours = math.ceil(hours_charged)
+
+    # Calculate charging fee
+
+    if charger_type == "AC":
+        if billable_hours <= 2:
+            hourly_rate = 4
+        elif billable_hours <= 4:
+            hourly_rate = 6
+        elif billable_hours <= 6:
+            hourly_rate = 8
+        else:
+            hourly_rate = 12
+
+        gross_fee = hourly_rate * billable_hours
+
+        if billable_hours > 6 and gross_fee > 80:
+            gross_fee = 80
+
+    elif charger_type == "DC":
+        if billable_hours <= 2:
+            hourly_rate = 10
+        elif billable_hours <= 4:
+            hourly_rate = 15
+        elif billable_hours <= 6:
+            hourly_rate = 20
+        else:
+            hourly_rate = 30
+
+        gross_fee = hourly_rate * billable_hours
+
+        if billable_hours > 6 and gross_fee > 150:
+            gross_fee = 150
+
+    # Apply member discount or first-time waiver
+
+    if is_first_time_user == "YES":
+        member_discount = gross_fee
+    elif member_type == "STAFF":
+        member_discount = gross_fee * 0.50
+    elif member_type == "STUDENT" and charger_type == "AC":
+        member_discount = gross_fee * 0.25
+
+    # Apply Green Eco-Pass discount
+
+    if has_green_eco_pass == "YES":
+        eco_pass_discount = 2
+
+    total_discount = member_discount + eco_pass_discount
+    discounted_fee = gross_fee - total_discount
+
+    if discounted_fee < 0:
+        discounted_fee = 0
+
+    # Add applicable surcharges
+
+    if is_peak_hour == "YES":
+        surcharge_amount += 5
+
+    if is_idle_parking == "YES":
+        surcharge_amount += 15
+
+    if lost_rfid_card == "YES":
+        surcharge_amount += 30
+
+    net_payable = discounted_fee + surcharge_amount
+
+    # Display itemised bill
+
+    print("\n--------------------------------------")
+    print("Taylor's Campus EV Charging Bill")
+    print("--------------------------------------")
+    print("User ID:", user_id)
+    print("Vehicle Number:", vehicle_number)
+    print("Member Type:", member_type)
+    print("Charger Type:", charger_type)
+    print("Billable Hours:", billable_hours)
+    print(f"Gross Charging Fee: RM {gross_fee:.2f}")
+    print(f"Member Discount: RM {member_discount:.2f}")
+    print(f"Eco-Pass Discount: RM {eco_pass_discount:.2f}")
+    print(f"Total Surcharges: RM {surcharge_amount:.2f}")
+    print(f"Net Payable: RM {net_payable:.2f}")
+    print("--------------------------------------")
+
+    # Ask whether another vehicle should be processed
+
+    process_another_vehicle = input(
+        "Process another vehicle? (YES/NO): "
+    ).upper()
+
+print("Program ended.")
