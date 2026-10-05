@@ -1,5 +1,3 @@
-# -Principles-of-programming-202609-LLecture-
-
 # Principles of Programming – Assessment 1
 
 **Module:** ITS72604 – Principles of Programming  
