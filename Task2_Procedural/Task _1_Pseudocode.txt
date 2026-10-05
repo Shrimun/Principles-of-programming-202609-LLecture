@@ -1,0 +1,144 @@
+BEGIN
+
+	SET processAnotherVehicle = "YES"
+	WHILE processAnotherVehicle = "YES"
+
+  Task - 1 : Get user input
+
+        INPUT userID
+        INPUT vehicleNumber
+        INPUT memberType
+        INPUT chargerType
+        INPUT hoursCharged
+        INPUT isFirstTimeUser
+        INPUT hasGreenEcoPass
+        INPUT isPeakHour
+        INPUT isIdleParking
+        INPUT lostRFIDCard
+
+        SET grossFee = 0
+        SET memberDiscount = 0
+        SET ecoPassDiscount = 0
+        SET surchargeAmount = 0
+        SET hourlyRate = 0
+
+
+        # Charging time is billed by the hour or part thereof
+        SET billableHours = CEILING(hoursCharged)
+
+
+  Task -2 Calculate charging fee
+
+        IF chargerType = "AC" THEN
+
+            IF billableHours <= 2 THEN
+                SET hourlyRate = 4
+            ELSE IF billableHours <= 4 THEN
+                SET hourlyRate = 6
+            ELSE IF billableHours <= 6 THEN
+                SET hourlyRate = 8
+            ELSE
+                SET hourlyRate = 12
+            END IF
+
+            SET grossFee = hourlyRate * billableHours
+
+            IF billableHours > 6 AND grossFee > 80 THEN
+                SET grossFee = 80
+            END IF
+
+        ELSE IF chargerType = "DC" THEN
+
+            IF billableHours <= 2 THEN
+                SET hourlyRate = 10
+            ELSE IF billableHours <= 4 THEN
+                SET hourlyRate = 15
+            ELSE IF billableHours <= 6 THEN
+                SET hourlyRate = 20
+            ELSE
+                SET hourlyRate = 30
+            END IF
+
+            SET grossFee = hourlyRate * billableHours
+
+            IF billableHours > 6 AND grossFee > 150 THEN
+                SET grossFee = 150
+            END IF
+
+        END IF
+
+
+  Task - 3 Apply member discount or first-time waiver
+
+        IF isFirstTimeUser = "YES" THEN
+            SET memberDiscount = grossFee
+
+        ELSE IF memberType = "STAFF" THEN
+            SET memberDiscount = grossFee * 0.50
+
+        ELSE IF memberType = "STUDENT" AND chargerType = "AC" THEN
+            SET memberDiscount = grossFee * 0.25
+
+        ELSE
+            SET memberDiscount = 0
+        END IF
+
+        # Apply Green Eco-Pass discount
+
+        IF hasGreenEcoPass = "YES" THEN
+            SET ecoPassDiscount = 2
+        END IF
+
+        SET totalDiscount = memberDiscount + ecoPassDiscount
+
+        SET discountedFee = grossFee - totalDiscount
+
+        IF discountedFee < 0 THEN
+            SET discountedFee = 0
+        END IF
+
+
+  Task - 4 Add applicable surcharges
+
+        IF isPeakHour = "YES" THEN
+            SET surchargeAmount = surchargeAmount + 5
+        END IF
+
+        IF isIdleParking = "YES" THEN
+            SET surchargeAmount = surchargeAmount + 15
+        END IF
+
+        IF lostRFIDCard = "YES" THEN
+            SET surchargeAmount = surchargeAmount + 30
+        END IF
+
+        SET netPayable = discountedFee + surchargeAmount
+
+
+  Task - 5 Display itemised bill
+
+        OUTPUT "--------------------------------------"
+        OUTPUT "Taylor's Campus EV Charging Bill"
+        OUTPUT "--------------------------------------"
+        OUTPUT "User ID: ", userID
+        OUTPUT "Vehicle Number: ", vehicleNumber
+        OUTPUT "Member Type: ", memberType
+        OUTPUT "Charger Type: ", chargerType
+        OUTPUT "Billable Hours: ", billableHours
+        OUTPUT "Gross Charging Fee: RM ", grossFee
+        OUTPUT "Member Discount: RM ", memberDiscount
+        OUTPUT "Eco-Pass Discount: RM ", ecoPassDiscount
+        OUTPUT "Total Surcharges: RM ", surchargeAmount
+        OUTPUT "Net Payable: RM ", netPayable
+        OUTPUT "--------------------------------------"
+
+
+  Task - 6 Ask whether another vehicle should be processed
+
+        INPUT processAnotherVehicle
+
+    END WHILE
+
+    OUTPUT "Program ended."
+
+END
